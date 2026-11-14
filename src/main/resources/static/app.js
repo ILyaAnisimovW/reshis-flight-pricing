@@ -78,10 +78,24 @@ function startApp() {
     $('form-status').classList.toggle('error', error);
   }
   function readyButton() { $('calculate').disabled = !state.routes.length || state.busy || !state.csrf || state.authBusy; }
+  function syncContext() {
+    const route = currentRoute();
+    if (!route) return;
+    $('context-destination').textContent = route.destination;
+    $('context-code').textContent = route.route.replace('-', ' / ');
+    const price = parsePrice($('price').value);
+    $('context-caption').textContent = dateLabel($('date').value) + (price === null ? ' · Укажите цену билета' : ' · ' + fmt(price) + ' ₽ за билет');
+  }
+  function setBusy(busy) {
+    $('calculate').textContent = busy ? 'Считаем…' : 'Рассчитать прогноз';
+    $('calculate').classList.toggle('is-loading', busy);
+    $('calculate').setAttribute('aria-busy', String(busy));
+    document.querySelector('.analysis').setAttribute('aria-busy', String(busy));
+  }
   function currentRoute() { return state.routes.find(route => route.route === $('route').value); }
   function invalidate() {
     gate.next(); controller?.abort(); state.busy = false;
-    $('calculate').textContent = 'Рассчитать прогноз →';
+    setBusy(false); syncContext();
     if (state.result) {
       $('stale-note').hidden = false;
       $('result-state').textContent = 'Предыдущий расчёт';
@@ -135,7 +149,7 @@ function startApp() {
       $('price').setAttribute('aria-invalid','true'); $('price').focus(); return;
     }
     const id = gate.next(); controller?.abort(); controller = new AbortController();
-    state.busy = true; readyButton(); $('calculate').textContent = 'Считаем…'; status('Выполняем расчёт на сервере…');
+    state.busy = true; readyButton(); setBusy(true); status('Выполняем расчёт на сервере…');
     const input = { route:$('route').value, date:$('date').value, price };
     try {
       const result = await post('/api/calculate', input, false, controller.signal);
@@ -145,7 +159,7 @@ function startApp() {
       if (!gate.current(id) || error.name === 'AbortError') return;
       status(errorText(error), true); $('recover').hidden = ![0,403].includes(error.status);
     } finally {
-      if (gate.current(id)) { state.busy = false; $('calculate').textContent = 'Рассчитать прогноз →'; readyButton(); }
+      if (gate.current(id)) { state.busy = false; setBusy(false); readyButton(); }
     }
   });
 
@@ -153,9 +167,9 @@ function startApp() {
     const data = state.result;
     $('empty').hidden = true; $('result').hidden = false; $('stale-note').hidden = true;
     $('result-state').textContent = 'Рассчитано'; $('result-state').className = 'badge current';
-    $('route-code').textContent = data.route.replace('-', ' → ') + ' · коды направления';
+    $('route-code').textContent = data.route.replace('-', ' / ');
     const origin = document.createElement('span'); origin.textContent = 'Москва';
-    const arrow = document.createElement('span'); arrow.textContent = '→'; arrow.className = 'route-arrow';
+    const arrow = document.createElement('span'); arrow.setAttribute('aria-label','в'); arrow.className = 'route-arrow';
     const destination = document.createElement('span'); destination.textContent = state.routes.find(route => route.route === data.route).destination;
     $('result-route').replaceChildren(origin, arrow, destination);
     $('result-context').textContent = `${dateLabel(data.date)} · ${fmt(data.price)} ₽ за билет`;
@@ -177,13 +191,29 @@ function startApp() {
       return row;
     }));
     drawChart();
+    animateResult();
   }
+  function animateResult() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    ['.result-context','.main-metric','.secondary-metrics','.chart-panel'].forEach((selector, index) => {
+      const element = document.querySelector(selector);
+      element.getAnimations().forEach(animation => animation.cancel());
+      element.animate([{opacity:0, transform:'translateY(8px)'},{opacity:1, transform:'translateY(0)'}], {
+        duration:380, delay:index*55, fill:'backwards', easing:'cubic-bezier(.2,.7,.2,1)'
+      });
+    });
+    $('chart').querySelector('.demand-line')?.animate([{strokeDashoffset:1},{strokeDashoffset:0}], {
+      duration:620, delay:165, fill:'backwards', easing:'cubic-bezier(.2,.65,.3,1)'
+    });
+  }
+  let lastChartWidth = 0;
   function drawChart() {
     if (!state.result || $('result').hidden) return;
     const data = state.result;
     const width = $('chart-wrap').clientWidth;
     if (!width) return;
-    const height = width < 500 ? 290 : 250;
+    lastChartWidth = width;
+    const height = width < 500 ? 290 : 280;
     const svg = $('chart'); svg.replaceChildren(); svg.setAttribute('viewBox',`0 0 ${width} ${height}`); svg.setAttribute('height',height);
     const values = data.quantiles.map(point => point.demand).concat(data.seats,0);
     const {lo, hi, ticks} = niceTicks(values);
@@ -199,8 +229,8 @@ function startApp() {
       if (text !== undefined) element.textContent = text;
       svg.append(element); return element;
     }
-    function line(x1,y1,x2,y2,attrs={}) { return node('line',{x1,y1,x2,y2,stroke:'#e6dfd5',...attrs}); }
-    function label(px,py,text,attrs={}) { node('text',{x:px,y:py,fill:'#6e685f','font-size':12,...attrs},text); }
+    function line(x1,y1,x2,y2,attrs={}) { return node('line',{x1,y1,x2,y2,stroke:'#252930',...attrs}); }
+    function label(px,py,text,attrs={}) { node('text',{x:px,y:py,fill:'#a3a9b3','font-size':12,...attrs},text); }
     node('title',{id:'chart-title'},'Квантили спроса при выбранной цене');
     node('desc',{id:'chart-description'},`Медиана ${fmt(data.demand)}, вместимость ${fmt(data.seats)}. Полные значения доступны в раскрываемой таблице.`);
     label(0,15,'Спрос, пассажиры');
@@ -208,20 +238,22 @@ function startApp() {
       line(left,y(value),right,y(value));
       label(left-8,y(value)+4,axisFmt(value),{'text-anchor':'end'});
     }
-    line(left,y(data.seats),right,y(data.seats),{stroke:'#6e685f','stroke-width':1.5,'stroke-dasharray':'6 4'});
+    line(left,y(data.seats),right,y(data.seats),{stroke:'#858c98','stroke-width':1.5,'stroke-dasharray':'6 4'});
     const median = data.quantiles[4];
-    line(x(4),y(median.demand),x(4),bottom,{stroke:'#7b2d3b','stroke-dasharray':'2 4'});
-    node('polyline',{points:data.quantiles.map((p,i)=>`${x(i)},${y(p.demand)}`).join(' '),fill:'none',stroke:'#7b2d3b','stroke-width':2.5});
+    line(x(4),y(median.demand),x(4),bottom,{stroke:'#b8c3ff','stroke-dasharray':'2 4'});
+    node('polyline',{'class':'demand-line',pathLength:1,'stroke-dasharray':1,points:data.quantiles.map((p,i)=>`${x(i)},${y(p.demand)}`).join(' '),fill:'none',stroke:'#b8c3ff','stroke-width':2.5});
     data.quantiles.forEach((point,i) => {
-      if (i===4) node('path',{d:`M ${x(i)} ${y(point.demand)-7} l 7 7 -7 7 -7 -7 Z`,fill:'#7b2d3b',stroke:'#fffcf7','stroke-width':1.5});
-      else node('circle',{cx:x(i),cy:y(point.demand),r:3.5,fill:'#fffcf7',stroke:'#7b2d3b','stroke-width':2});
+      if (i===4) node('path',{d:`M ${x(i)} ${y(point.demand)-7} l 7 7 -7 7 -7 -7 Z`,fill:'#b8c3ff',stroke:'#14171c','stroke-width':1.5});
+      else node('circle',{cx:x(i),cy:y(point.demand),r:3.5,fill:'#14171c',stroke:'#b8c3ff','stroke-width':2});
       label(x(i),bottom+22,fmt(point.q),{'text-anchor':'middle','font-weight':i===4?700:400});
     });
     label((left+right)/2,height-3,'Уровень квантиля',{'text-anchor':'middle'});
     $('scale-note').textContent = (data.quantiles[8].demand-data.quantiles[0].demand)/span < .15
       ? 'Разброс квантилей сжат общим масштабом: показаны также ноль и вместимость. Все значения сохранены в таблице.' : '';
   }
-  new ResizeObserver(drawChart).observe($('chart-wrap'));
+  new ResizeObserver(() => {
+    if ($('chart-wrap').clientWidth !== lastChartWidth) drawChart();
+  }).observe($('chart-wrap'));
 
   // Native modal dialog handles Tab containment and Escape; restore the original trigger explicitly.
   $('account-open').onclick = () => { returnFocus = document.activeElement; renderAccount(); $('account-dialog').showModal(); (state.user ? $('report') : $(`${authMode}-username`)).focus(); };
@@ -333,5 +365,3 @@ function startApp() {
   window.addEventListener('online',()=>{ status('Подключение восстановлено. Повторите расчёт.'); $('recover').hidden=false; });
   void initialize();
 }
-
-

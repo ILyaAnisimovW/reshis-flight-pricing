@@ -1,59 +1,24 @@
 <!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Прогноз спроса на рейс — Решись</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2324231f'/%3E%3Ctext x='9' y='24' font-size='24' fill='white'%3EP%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script>
-</head>
-<body>
-<a class="skip" href="#scenario">К параметрам расчёта</a>
-<header class="topbar"><div class="brand"><span>Решись</span><small>авиапрогноз</small></div><button id="account-open" class="secondary">Войти</button></header>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#08090b"><title>Решись — авиапрогноз</title><link rel="icon" href="data:,"><link rel="preload" href="fonts/golos-text-variable.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script></head>
+<body><a class="skip" href="#scenario">К параметрам расчёта</a>
+<header class="topbar"><a class="brand" href="/" aria-label="Решись, главная">Решись<span>авиапрогноз</span></a><button id="account-open" class="secondary">Войти</button></header>
 <main>
-  <div class="page-heading"><div><h1>Прогноз спроса на рейс</h1><p>Оцените продажи при выбранной цене билета.</p></div><span class="period">Данные кейса<br><strong>1 июня — 1 июля 2026</strong></span></div>
-  <div class="workspace">
-    <section class="parameters" aria-labelledby="parameters-title"><div class="section-heading"><h2 id="parameters-title">Параметры сценария</h2></div>
-      <form id="scenario" novalidate>
-        <div class="origin"><span class="label">Отправление</span><strong>Москва <span>MOW</span></strong></div>
-        <label for="route">Назначение</label><select id="route" disabled><option>Загрузка направлений…</option></select>
-        <label for="date">Дата вылета</label><select id="date" disabled></select>
-        <div class="price-heading"><label for="price">Цена билета, ₽</label><button type="button" id="base-price" class="text-button" disabled>Базовая цена</button></div>
-        <div class="price-control"><input id="price" type="text" inputmode="decimal" autocomplete="off" aria-describedby="price-error price-range price-policy" disabled><span aria-hidden="true">₽</span></div>
-        <p id="price-error" class="field-error" role="alert"></p><p id="price-range" class="hint"></p><p id="price-policy" class="hint">Для нового направления — базовая цена.</p>
-        <button id="calculate" class="primary" disabled>Рассчитать прогноз <span aria-hidden="true">→</span></button>
-        <p id="form-status" class="status" role="status" aria-live="polite">Загружаем каталог и готовим расчёт…</p>
-        <button id="recover" class="secondary" type="button" hidden>Обновить подключение</button>
-      </form>
-      <div class="source-note"><span class="source-dot"></span>Собственный ML-прогноз<p>5 направлений из Москвы · учебная модель</p></div>
-    </section>
-    <section class="analysis" aria-labelledby="result-title">
-      <div class="section-heading"><h2 id="result-title">Результат сценария</h2><span id="result-state" class="badge">Нет расчёта</span></div>
-      <div id="empty" class="empty">
-        <span class="empty-kicker">Сценарий ещё не рассчитан</span>
-        <h3>От цены билета —<br>к прогнозу продаж.</h3>
-        <p>Задайте направление, дату и цену. Расчёт покажет, как соотносятся спрос и вместимость рейса.</p>
-        <div class="empty-flow" aria-label="Порядок расчёта">
-          <div><b>Цена →</b><small>Ваш сценарий</small></div>
-          <div><b>Спрос →</b><small>Оценка модели</small></div>
-          <div><b>Продажи</b><small>С учётом мест</small></div>
-        </div>
-      </div>
-      <div id="result" hidden>
-        <div id="stale-note" class="notice" hidden>Параметры изменены. Ниже — предыдущий расчёт; нажмите «Рассчитать прогноз», чтобы обновить.</div>
-        <div class="result-context"><span id="route-code"></span><h3 id="result-route" tabindex="-1"></h3><a class="edit-scenario" href="#scenario">Изменить параметры ↑</a><p id="result-context"></p></div>
-        <div class="metrics"><div class="metric main-metric"><span>Прогноз продаж</span><strong id="sales"></strong><small>пассажиров</small></div><div class="metric"><span>Расчётный спрос</span><strong id="demand"></strong><small>пассажиров · медиана</small></div><div class="metric"><span>Мест всего</span><strong id="seats"></strong><small>вместимость по расписанию</small></div></div>
-        <p id="interpretation" class="interpretation"></p><p id="result-warning" class="notice" hidden></p>
-        <div class="chart-heading"><div><h3>Неопределённость спроса</h3><p>Девять квантилей при одной введённой цене</p></div></div>
-        <div class="legend"><span><i class="line-key"></i>Спрос</span><span><i class="diamond-key"></i>Медиана <b id="median-label"></b></span><span><i class="dash-key"></i>Мест <b id="seats-label"></b></span></div>
-        <div id="chart-wrap"><svg id="chart" role="img" aria-labelledby="chart-title chart-description"></svg></div>
-        <p id="scale-note" class="hint"></p>
-        <div class="details-row"><details><summary>Точные значения квантилей</summary><table><caption>Спрос при цене этого расчёта, пассажиров</caption><thead><tr><th scope="col">Квантиль</th><th scope="col">Спрос</th></tr></thead><tbody id="quantiles"></tbody></table></details><details><summary>Как читать прогноз</summary><p>0,5 — медиана спроса. Уровни 0,1…0,9 — квантили одного прогноза, а не девять независимых равновероятных исходов. Покрытие интервала не гарантировано.</p><p>Продажи ограничены нулём и вместимостью. Спрос на графике не ограничивается местами. Это оценка модели, а не бронирование; дробные значения допустимы. На экране — до двух знаков после запятой.</p></details></div>
-      </div>
-    </section>
-  </div>
-  <footer><span>Турнир «Решись» · вариант C</span><span>Анисимов Илья Васильевич</span></footer>
-</main>
-<dialog id="account-dialog" aria-labelledby="account-title"><div class="dialog-heading"><span class="eyebrow">Решись · аккаунт</span><button id="account-close" class="icon-button" aria-label="Закрыть окно аккаунта">×</button></div><h2 id="account-title">Вход</h2><p id="account-description" class="hint">Расчёт доступен без входа. Аккаунт открывает памятку участника.</p>
+<section class="scenario-context" aria-labelledby="page-title"><div><div class="eyebrow">Сценарий рейса <span id="context-code">Из Москвы</span></div><h1 id="page-title">Москва <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> <span id="context-destination">Выберите направление</span></h1><p id="context-caption">Выберите дату и цену, чтобы оценить продажи.</p></div><div class="period"><span class="source-dot"></span>Период данных<strong>01.06 — 01.07.2026</strong></div></section>
+<section class="parameters" aria-label="Параметры сценария"><form id="scenario" novalidate>
+<div class="control-cell destination-cell"><label for="route">Куда из Москвы</label><select id="route" disabled><option>Загрузка направлений…</option></select></div>
+<div class="control-cell"><label for="date">Дата вылета</label><select id="date" disabled></select></div>
+<div class="control-cell price-cell"><div class="price-heading"><label for="price">Цена билета</label><button type="button" id="base-price" class="text-button" disabled>Базовая</button></div><div class="price-control"><input id="price" type="text" inputmode="decimal" autocomplete="off" aria-describedby="price-error price-range price-policy" disabled><span aria-hidden="true">₽</span></div></div>
+<div class="action-cell"><button id="calculate" class="primary" disabled>Рассчитать прогноз</button></div>
+<div class="form-feedback"><div><p id="price-error" class="field-error" role="alert"></p><p id="price-range" class="hint"></p><p id="price-policy" class="hint">Для нового направления — базовая цена.</p></div><p id="form-status" class="status" role="status" aria-live="polite">Загружаем каталог и готовим расчёт…</p><button id="recover" class="secondary" type="button" hidden>Обновить подключение</button></div>
+</form></section>
+<section class="analysis" aria-labelledby="result-title"><div class="analysis-toolbar"><h2 id="result-title">Прогноз продаж</h2><span id="result-state" class="badge">Нет расчёта</span></div>
+<div id="empty" class="empty"><div class="empty-copy"><span class="eyebrow">От сценария к решению</span><h2>Найдите свою<br>точку равновесия.</h2><p>Задайте цену билета. Модель оценит спрос, а вместимость рейса определит прогноз продаж.</p><span class="empty-prompt">Начните с параметров выше</span></div><div class="empty-flow" aria-label="Схема расчёта, без прогнозных значений"><div><span class="flow-symbol">₽</span><b>Цена билета</b><small>Ваше решение</small></div><span class="flow-connector" aria-hidden="true"></span><div><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M8 34 18 27 28 30 40 13" stroke="currentColor" stroke-width="1.5"/><circle cx="28" cy="30" r="3" fill="#14171c" stroke="currentColor"/></svg><b>Спрос</b><small>Прогноз модели</small></div><span class="flow-connector" aria-hidden="true"></span><div><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="10" y="12" width="28" height="25" rx="5" stroke="currentColor"/><path d="m18 24 4 4 9-10" stroke="currentColor" stroke-width="1.5"/></svg><b>Продажи</b><small>С учётом мест</small></div></div></div>
+<div id="result" hidden><div id="stale-note" class="notice" hidden>Параметры изменены. Ниже — предыдущий расчёт; нажмите «Рассчитать прогноз», чтобы обновить.</div>
+<div class="result-context"><span id="route-code"></span><h3 id="result-route" tabindex="-1"></h3><p id="result-context"></p><a class="edit-scenario" href="#scenario">Изменить параметры</a></div>
+<div class="result-grid"><div class="result-summary"><div class="metrics"><div class="metric main-metric"><span>Прогноз продаж</span><strong id="sales"></strong><small>пассажиров</small></div><div class="secondary-metrics"><div class="metric"><span>Спрос · медиана</span><strong id="demand"></strong></div><div class="metric"><span>Вместимость</span><strong id="seats"></strong></div></div></div><p id="interpretation" class="interpretation"></p><p id="result-warning" class="notice" hidden></p><div class="model-note"><span class="source-dot"></span>Собственный ML-прогноз<span>Учебная модель · 5 направлений</span></div></div>
+<div class="chart-panel"><div class="chart-heading"><h3>Распределение спроса</h3><p>Одна цена · девять квантилей</p></div><div class="legend"><span><i class="line-key"></i>Спрос</span><span><i class="diamond-key"></i>Медиана <b id="median-label"></b></span><span><i class="dash-key"></i>Мест <b id="seats-label"></b></span></div><div id="chart-wrap"><svg id="chart" role="img" aria-labelledby="chart-title chart-description"></svg></div><p id="scale-note" class="hint"></p></div></div>
+<div class="details-row"><details><summary>Точные значения квантилей</summary><table><caption>Спрос при цене этого расчёта, пассажиров</caption><thead><tr><th scope="col">Квантиль</th><th scope="col">Спрос</th></tr></thead><tbody id="quantiles"></tbody></table></details><details><summary>Как читать прогноз</summary><p>0,5 — медиана спроса. Уровни 0,1…0,9 — квантили одного прогноза, а не независимые равновероятные исходы. Покрытие интервала не гарантировано.</p><p>Продажи ограничены нулём и вместимостью. Спрос не ограничивается местами. Это оценка модели, а не бронирование; дробные значения допустимы. На экране — до двух знаков после запятой.</p></details><details><summary>Об исходных данных</summary><p>Собственный ML-прогноз: 5 направлений из Москвы, 31 дата с 1 июня по 1 июля 2026 года. Квантили, вместимость и расчёт получены с сервера.</p></details></div></div></section>
+<footer><span>Турнир «Решись» · вариант C</span><span>Анисимов Илья Васильевич</span></footer></main><dialog id="account-dialog" aria-labelledby="account-title"><div class="dialog-heading"><span class="eyebrow">Решись · аккаунт</span><button id="account-close" class="icon-button" aria-label="Закрыть окно аккаунта">×</button></div><h2 id="account-title">Вход</h2><p id="account-description" class="hint">Расчёт доступен без входа. Аккаунт открывает памятку участника.</p>
   <div id="auth-forms"><div class="auth-tabs"><button id="tab-login" class="tab active" type="button">Вход</button><button id="tab-register" class="tab" type="button">Регистрация</button></div>
     <form id="login-form" novalidate><label for="login-username">Имя пользователя</label><input id="login-username" autocomplete="username" required aria-describedby="login-username-error"><p id="login-username-error" class="field-error"></p><label for="login-password">Пароль</label><input id="login-password" type="password" autocomplete="current-password" required aria-describedby="login-password-error"><p id="login-password-error" class="field-error"></p><button class="primary" type="submit">Войти в аккаунт</button></form>
     <form id="register-form" novalidate hidden><label for="register-username">Имя пользователя</label><input id="register-username" autocomplete="username" required aria-describedby="register-username-error register-hint"><p id="register-username-error" class="field-error"></p><p id="register-hint" class="hint">От 3 до 100 символов: латинские буквы, цифры, _ . -</p><label for="register-password">Пароль</label><input id="register-password" type="password" autocomplete="new-password" required aria-describedby="register-password-error"><p id="register-password-error" class="field-error"></p><p class="hint">Не менее 8 символов. Для демонстрации используйте вымышленный логин и отдельный пароль.</p><button class="primary" type="submit">Создать аккаунт</button></form>
@@ -62,4 +27,3 @@
   <p id="auth-status" class="status" role="status" aria-live="polite"></p><button id="auth-recover" class="secondary" hidden>Проверить подключение</button>
 </dialog>
 </body></html>
-

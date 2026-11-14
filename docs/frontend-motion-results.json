@@ -1,0 +1,87 @@
+{
+  "date": "2026-11-14",
+  "passed": true,
+  "results": [
+    {
+      "name": "loading retains button geometry and last result",
+      "passed": true,
+      "evidence": {
+        "initial": {
+          "x": 1173,
+          "y": 227,
+          "width": 198,
+          "height": 45
+        },
+        "loading": {
+          "x": 1173,
+          "y": 227,
+          "width": 198,
+          "height": 45
+        }
+      }
+    },
+    {
+      "name": "stagger and SVG line animate through real intermediate values",
+      "passed": true,
+      "evidence": {
+        "firstOffset": 1,
+        "middleOffset": 0.353799,
+        "endOffset": 0,
+        "stagger": [
+          [
+            {
+              "delay": 0,
+              "duration": 380
+            }
+          ],
+          [
+            {
+              "delay": 55,
+              "duration": 380
+            }
+          ],
+          [
+            {
+              "delay": 110,
+              "duration": 380
+            }
+          ],
+          [
+            {
+              "delay": 165,
+              "duration": 380
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "name": "dialog panel and backdrop fade, keyboard closes and restores focus",
+      "passed": true,
+      "evidence": [
+        {
+          "name": "enter",
+          "duration": 250
+        },
+        {
+          "name": "fade",
+          "duration": 250
+        }
+      ]
+    },
+    {
+      "name": "reduced motion disables CSS and JS animation with identical real data",
+      "passed": true
+    },
+    {
+      "name": "mobile short viewport with focused price and scrollable account",
+      "passed": true,
+      "evidence": {
+        "height": 468,
+        "viewport": 500,
+        "scroll": 624,
+        "client": 466
+      }
+    }
+  ]
+}
