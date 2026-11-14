@@ -1,0 +1,8 @@
+.git
+.gradle
+build
+.venv
+*.log
+.env
+data
+runtime

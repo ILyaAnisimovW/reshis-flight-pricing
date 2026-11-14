@@ -1,0 +1,242 @@
+[
+  {
+    "price": 9000.0,
+    "demand": 854.000,
+    "route": "MOW-AER",
+    "date": "2026-06-01",
+    "passed": true,
+    "sales": 854.000
+  },
+  {
+    "price": 10000.0,
+    "demand": 713.000,
+    "route": "MOW-AER",
+    "date": "2026-06-01",
+    "passed": true,
+    "sales": 713.000
+  },
+  {
+    "price": 9000.0,
+    "demand": 802.000,
+    "route": "MOW-AER",
+    "date": "2026-06-12",
+    "passed": true,
+    "sales": 802.000
+  },
+  {
+    "price": 10000.0,
+    "demand": 661.000,
+    "route": "MOW-AER",
+    "date": "2026-06-12",
+    "passed": true,
+    "sales": 661.000
+  },
+  {
+    "price": 9000.0,
+    "demand": 753.000,
+    "route": "MOW-AER",
+    "date": "2026-07-01",
+    "passed": true,
+    "sales": 753.000
+  },
+  {
+    "price": 10000.0,
+    "demand": 612.000,
+    "route": "MOW-AER",
+    "date": "2026-07-01",
+    "passed": true,
+    "sales": 612.000
+  },
+  {
+    "price": 7500.0,
+    "demand": 475.0000,
+    "route": "MOW-KGD",
+    "date": "2026-06-01",
+    "passed": true,
+    "sales": 450.0
+  },
+  {
+    "price": 8500.0,
+    "demand": 379.3000,
+    "route": "MOW-KGD",
+    "date": "2026-06-01",
+    "passed": true,
+    "sales": 379.3000
+  },
+  {
+    "price": 7500.0,
+    "demand": 455.0000,
+    "route": "MOW-KGD",
+    "date": "2026-06-12",
+    "passed": true,
+    "sales": 450.0
+  },
+  {
+    "price": 8500.0,
+    "demand": 359.3000,
+    "route": "MOW-KGD",
+    "date": "2026-06-12",
+    "passed": true,
+    "sales": 359.3000
+  },
+  {
+    "price": 7500.0,
+    "demand": 387.0000,
+    "route": "MOW-KGD",
+    "date": "2026-07-01",
+    "passed": true,
+    "sales": 387.0000
+  },
+  {
+    "price": 8500.0,
+    "demand": 291.3000,
+    "route": "MOW-KGD",
+    "date": "2026-07-01",
+    "passed": true,
+    "sales": 291.3000
+  },
+  {
+    "price": 5500.0,
+    "demand": 1154.000,
+    "route": "MOW-LED",
+    "date": "2026-06-01",
+    "passed": true,
+    "sales": 1154.000
+  },
+  {
+    "price": 6500.0,
+    "demand": 860.000,
+    "route": "MOW-LED",
+    "date": "2026-06-01",
+    "passed": true,
+    "sales": 860.000
+  },
+  {
+    "price": 5500.0,
+    "demand": 1002.000,
+    "route": "MOW-LED",
+    "date": "2026-06-12",
+    "passed": true,
+    "sales": 1002.000
+  },
+  {
+    "price": 6500.0,
+    "demand": 708.000,
+    "route": "MOW-LED",
+    "date": "2026-06-12",
+    "passed": true,
+    "sales": 708.000
+  },
+  {
+    "price": 5500.0,
+    "demand": 907.000,
+    "route": "MOW-LED",
+    "date": "2026-07-01",
+    "passed": true,
+    "sales": 907.000
+  },
+  {
+    "price": 6500.0,
+    "demand": 613.000,
+    "route": "MOW-LED",
+    "date": "2026-07-01",
+    "passed": true,
+    "sales": 613.000
+  },
+  {
+    "price": 8000.0,
+    "demand": 346.0000,
+    "route": "MOW-MRV",
+    "date": "2026-06-01",
+    "passed": true,
+    "sales": 346.0000
+  },
+  {
+    "price": 9000.0,
+    "demand": 280.7000,
+    "route": "MOW-MRV",
+    "date": "2026-06-01",
+    "passed": true,
+    "sales": 280.7000
+  },
+  {
+    "price": 8000.0,
+    "demand": 335.0000,
+    "route": "MOW-MRV",
+    "date": "2026-06-12",
+    "passed": true,
+    "sales": 335.0000
+  },
+  {
+    "price": 9000.0,
+    "demand": 269.7000,
+    "route": "MOW-MRV",
+    "date": "2026-06-12",
+    "passed": true,
+    "sales": 269.7000
+  },
+  {
+    "price": 8000.0,
+    "demand": 307.0000,
+    "route": "MOW-MRV",
+    "date": "2026-07-01",
+    "passed": true,
+    "sales": 307.0000
+  },
+  {
+    "price": 9000.0,
+    "demand": 241.7000,
+    "route": "MOW-MRV",
+    "date": "2026-07-01",
+    "passed": true,
+    "sales": 241.7000
+  },
+  {
+    "price": 12000.0,
+    "demand": 226.0000,
+    "route": "MOW-OVB",
+    "date": "2026-06-01",
+    "passed": true,
+    "sales": 226.0000
+  },
+  {
+    "price": 13000.0,
+    "demand": 194.8000,
+    "route": "MOW-OVB",
+    "date": "2026-06-01",
+    "passed": true,
+    "sales": 194.8000
+  },
+  {
+    "price": 12000.0,
+    "demand": 232.0000,
+    "route": "MOW-OVB",
+    "date": "2026-06-12",
+    "passed": true,
+    "sales": 232.0000
+  },
+  {
+    "price": 13000.0,
+    "demand": 200.8000,
+    "route": "MOW-OVB",
+    "date": "2026-06-12",
+    "passed": true,
+    "sales": 200.8000
+  },
+  {
+    "price": 12000.0,
+    "demand": 197.0000,
+    "route": "MOW-OVB",
+    "date": "2026-07-01",
+    "passed": true,
+    "sales": 197.0000
+  },
+  {
+    "price": 13000.0,
+    "demand": 165.8000,
+    "route": "MOW-OVB",
+    "date": "2026-07-01",
+    "passed": true,
+    "sales": 165.8000
+  }
+]
