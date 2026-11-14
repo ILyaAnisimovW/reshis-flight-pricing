@@ -1,4 +1,6 @@
-# Решись — авиапрогноз
+# Авиапрогноз
+
+**Приложение:** https://aviaprognoz.onrender.com/ — Java/Spring Boot на Render Free, аккаунты в Neon PostgreSQL Free. После простоя первый заход может ожидать запуска сервиса. [Конфигурация и результаты деплоя](docs/deployment.md). Ветка размещения: `codex/render-free-deploy`.
 
 Актуальный frontend: [тёмная рабочая панель и протокол проверки](docs/frontend-linear-dark.md), ветка `codex/linear-dark-redesign`. Горизонтальные параметры, крупный график, локальный Golos Text, согласованные анимации и reduced motion. Предыдущие версии и скриншоты сохранены; разделы о ранних редизайнах ниже описывают историю проекта.
 
