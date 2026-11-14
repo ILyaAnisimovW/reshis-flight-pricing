@@ -1,0 +1,125 @@
+{
+  "date": "2026-11-14",
+  "base": "http://localhost:8091",
+  "browser": "157.0.8103.51",
+  "passed": true,
+  "results": [
+    {
+      "name": "initial empty, base price, independent account",
+      "passed": true
+    },
+    {
+      "name": "three real API reference cases",
+      "passed": true
+    },
+    {
+      "name": "stale result, valid date retained, new base price",
+      "passed": true
+    },
+    {
+      "name": "price validation, comma decimals and base reset",
+      "passed": true
+    },
+    {
+      "name": "slow old response cannot overwrite newer result",
+      "passed": true
+    },
+    {
+      "name": "network failure and recovery",
+      "passed": true
+    },
+    {
+      "name": "server 500, forbidden 403 retained and explicit CSRF recovery",
+      "passed": true
+    },
+    {
+      "name": "account network/500 is not guest; modal Escape and focus",
+      "passed": true
+    },
+    {
+      "name": "registration/login/report/logout real HTTP and passwords cleared",
+      "passed": true
+    },
+    {
+      "name": "responsive layouts 1440 1280 768 390 360, chart text and table",
+      "passed": true
+    },
+    {
+      "name": "keyboard Tab is contained in modal and Escape returns focus",
+      "passed": true
+    },
+    {
+      "name": "catalog failure has retry; account network failure stays unknown",
+      "passed": true
+    },
+    {
+      "name": "local font, nice ticks, long destinations and large values",
+      "passed": true
+    },
+    {
+      "name": "measured palette contrast and readable local typography",
+      "passed": true
+    },
+    {
+      "name": "no browser page errors",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 403 ()",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: the server responded with a status of 401 ()"
+  ],
+  "httpErrors": [
+    {
+      "url": "http://localhost:8091/api/auth/me",
+      "status": 401
+    },
+    {
+      "url": "http://localhost:8091/api/calculate",
+      "status": 500
+    },
+    {
+      "url": "http://localhost:8091/api/calculate",
+      "status": 403
+    },
+    {
+      "url": "http://localhost:8091/api/auth/me",
+      "status": 503
+    },
+    {
+      "url": "http://localhost:8091/api/auth/me",
+      "status": 401
+    },
+    {
+      "url": "http://localhost:8091/api/auth/login",
+      "status": 401
+    },
+    {
+      "url": "http://localhost:8091/api/catalog",
+      "status": 503
+    },
+    {
+      "url": "http://localhost:8091/api/auth/me",
+      "status": 401
+    },
+    {
+      "url": "http://localhost:8091/api/auth/me",
+      "status": 401
+    },
+    {
+      "url": "http://localhost:8091/api/auth/me",
+      "status": 401
+    }
+  ]
+}

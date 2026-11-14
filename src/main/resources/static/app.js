@@ -9,6 +9,18 @@ export function requestGate() {
   let version = 0;
   return { next: () => ++version, current: id => id === version };
 }
+// Linear scale with human-readable steps. These ticks never change API values.
+export function niceTicks(values, count = 5) {
+  const min = Math.min(0, ...values), max = Math.max(0, ...values);
+  const rough = (max - min || 1) / (count - 1);
+  const magnitude = 10 ** Math.floor(Math.log10(rough));
+  const fraction = rough / magnitude;
+  const step = (fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 2.5 ? 2.5 : fraction <= 5 ? 5 : 10) * magnitude;
+  const lo = Math.floor(min / step) * step;
+  const hi = Math.ceil((max || step) / step) * step;
+  const ticks = Array.from({length: Math.round((hi-lo)/step)+1}, (_, i) => Number((lo+i*step).toPrecision(12)));
+  return {lo, hi, ticks};
+}
 export class ApiError extends Error {
   constructor(status, code, message) { super(message); this.status = status; this.code = code; }
 }
@@ -141,9 +153,14 @@ function startApp() {
     const data = state.result;
     $('empty').hidden = true; $('result').hidden = false; $('stale-note').hidden = true;
     $('result-state').textContent = 'Рассчитано'; $('result-state').className = 'badge current';
-    $('result-route').textContent = `Москва → ${state.routes.find(route => route.route === data.route).destination}`;
+    $('route-code').textContent = data.route.replace('-', ' → ') + ' · коды направления';
+    const origin = document.createElement('span'); origin.textContent = 'Москва';
+    const arrow = document.createElement('span'); arrow.textContent = '→'; arrow.className = 'route-arrow';
+    const destination = document.createElement('span'); destination.textContent = state.routes.find(route => route.route === data.route).destination;
+    $('result-route').replaceChildren(origin, arrow, destination);
     $('result-context').textContent = `${dateLabel(data.date)} · ${fmt(data.price)} ₽ за билет`;
     for (const key of ['sales','demand','seats']) $(key).textContent = fmt(data[key]);
+    document.querySelector('.metrics').classList.toggle('has-large-number', fmt(data.demand).length > 10);
     $('interpretation').textContent = data.demand < 0
       ? 'Линейная модель дала отрицательный спрос. Прогноз продаж равен нулю; отрицательные значения сохранены на графике.'
       : data.demand > data.seats ? 'Спрос выше вместимости. Прогноз продаж ограничен общим числом мест.'
@@ -166,13 +183,14 @@ function startApp() {
     const data = state.result;
     const width = $('chart-wrap').clientWidth;
     if (!width) return;
-    const height = width < 500 ? 290 : 300;
+    const height = width < 500 ? 290 : 250;
     const svg = $('chart'); svg.replaceChildren(); svg.setAttribute('viewBox',`0 0 ${width} ${height}`); svg.setAttribute('height',height);
     const values = data.quantiles.map(point => point.demand).concat(data.seats,0);
-    let lo = Math.min(...values), hi = Math.max(...values); const span = hi - lo || 1;
-    lo -= span * .08; hi += span * .12;
-    const left = Math.max(48, Math.min(90, Math.max(fmt(lo).length,fmt(hi).length)*7+14));
-    const right = width - 14, top = 28, bottom = height - 46;
+    const {lo, hi, ticks} = niceTicks(values);
+    const span = hi - lo || 1;
+    const axisFmt = value => Math.abs(value) >= 1e6 ? new Intl.NumberFormat('ru-RU', {notation:'compact',maximumFractionDigits:1}).format(value) : fmt(value);
+    const left = Math.max(48, Math.min(90, Math.max(axisFmt(lo).length,axisFmt(hi).length)*7+14));
+    const right = width - 16, top = 34, bottom = height - 46;
     const x = i => left + i * (right-left)/8;
     const y = value => bottom - (value-lo)/(hi-lo)*(bottom-top);
     function node(tag, attrs, text) {
@@ -181,24 +199,22 @@ function startApp() {
       if (text !== undefined) element.textContent = text;
       svg.append(element); return element;
     }
-    function line(x1,y1,x2,y2,attrs={}) { return node('line',{x1,y1,x2,y2,stroke:'#dbe2e8',...attrs}); }
-    function label(px,py,text,attrs={}) { node('text',{x:px,y:py,fill:'#586a79','font-size':12,...attrs},text); }
+    function line(x1,y1,x2,y2,attrs={}) { return node('line',{x1,y1,x2,y2,stroke:'#e6dfd5',...attrs}); }
+    function label(px,py,text,attrs={}) { node('text',{x:px,y:py,fill:'#6e685f','font-size':12,...attrs},text); }
     node('title',{id:'chart-title'},'Квантили спроса при выбранной цене');
     node('desc',{id:'chart-description'},`Медиана ${fmt(data.demand)}, вместимость ${fmt(data.seats)}. Полные значения доступны в раскрываемой таблице.`);
     label(0,15,'Спрос, пассажиры');
-    for (let i=0;i<5;i++) {
-      const value = lo+(hi-lo)*i/4;
+    for (const value of ticks) {
       line(left,y(value),right,y(value));
-      label(left-8,y(value)+4,fmt(Math.round(value)),{'text-anchor':'end'});
+      label(left-8,y(value)+4,axisFmt(value),{'text-anchor':'end'});
     }
-    line(left,y(0),right,y(0),{stroke:'#8d9daa'});
-    line(left,y(data.seats),right,y(data.seats),{stroke:'#8d581b','stroke-width':2,'stroke-dasharray':'6 4'});
+    line(left,y(data.seats),right,y(data.seats),{stroke:'#6e685f','stroke-width':1.5,'stroke-dasharray':'6 4'});
     const median = data.quantiles[4];
-    line(x(4),y(median.demand),x(4),bottom,{stroke:'#255ed3','stroke-dasharray':'2 4'});
-    node('polyline',{points:data.quantiles.map((p,i)=>`${x(i)},${y(p.demand)}`).join(' '),fill:'none',stroke:'#255ed3','stroke-width':2.5});
+    line(x(4),y(median.demand),x(4),bottom,{stroke:'#7b2d3b','stroke-dasharray':'2 4'});
+    node('polyline',{points:data.quantiles.map((p,i)=>`${x(i)},${y(p.demand)}`).join(' '),fill:'none',stroke:'#7b2d3b','stroke-width':2.5});
     data.quantiles.forEach((point,i) => {
-      if (i===4) node('path',{d:`M ${x(i)} ${y(point.demand)-7} l 7 7 -7 7 -7 -7 Z`,fill:'#255ed3',stroke:'white','stroke-width':1.5});
-      else node('circle',{cx:x(i),cy:y(point.demand),r:3.5,fill:'white',stroke:'#255ed3','stroke-width':2});
+      if (i===4) node('path',{d:`M ${x(i)} ${y(point.demand)-7} l 7 7 -7 7 -7 -7 Z`,fill:'#7b2d3b',stroke:'#fffcf7','stroke-width':1.5});
+      else node('circle',{cx:x(i),cy:y(point.demand),r:3.5,fill:'#fffcf7',stroke:'#7b2d3b','stroke-width':2});
       label(x(i),bottom+22,fmt(point.q),{'text-anchor':'middle','font-weight':i===4?700:400});
     });
     label((left+right)/2,height-3,'Уровень квантиля',{'text-anchor':'middle'});

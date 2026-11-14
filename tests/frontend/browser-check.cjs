@@ -2,10 +2,10 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || require('node:path
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const base = process.env.APP_URL || 'http://localhost:8090';
-const output = 'docs/screenshots/redesign-2026-11-14';
+const output = 'docs/screenshots/art-direction-2026-11-14';
 (async()=>{
  const browser = await chromium.launch({channel:'chrome',headless:true});
- const context = await browser.newContext({viewport:{width:1440,height:1000}});
+ const context = await browser.newContext({viewport:{width:1440,height:900}});
  const page = await context.newPage();
  const errors=[]; const results=[]; const consoleErrors=[]; const httpErrors=[]; let completed=false;
  page.on('console',entry=>{if(entry.type()==='error') consoleErrors.push(entry.text())});
@@ -22,7 +22,7 @@ const output = 'docs/screenshots/redesign-2026-11-14';
  });
  await check('three real API reference cases',async()=>{
   for(const [price,demand,sales] of [['10000','713','713'],['8000','995','900'],['100000','-11 977','0']]){
-   await calculate(price);assert.equal((await page.locator('#demand').innerText()).replace(/\s/g,''),demand.replace(/\s/g,''));assert.equal(await page.locator('#sales').innerText(),sales);
+   await calculate(price); if(price==='8000') await page.screenshot({path:output+'/after-capacity.png',fullPage:true}); assert.equal((await page.locator('#demand').innerText()).replace(/\s/g,''),demand.replace(/\s/g,''));assert.equal(await page.locator('#sales').innerText(),sales);
   }
   assert.equal(await page.locator('#result-warning').isVisible(),true);assert.match(await page.locator('#interpretation').innerText(),/отрицательный/);
   await page.screenshot({path:output+'/after-negative.png',fullPage:true});
@@ -34,6 +34,7 @@ const output = 'docs/screenshots/redesign-2026-11-14';
  });
  await check('price validation, comma decimals and base reset',async()=>{
   for(const p of ['', '0','-1','NaN','Infinity','12foo']){await page.locator('#price').fill(p);await page.locator('#calculate').click();assert.equal(await page.locator('#price').getAttribute('aria-invalid'),'true')}
+  await page.screenshot({path:output+'/after-form-error.png',fullPage:true});
   await calculate('9000,50');assert.match(await page.locator('#result-context').innerText(),/9.000,5/);
   await page.locator('#base-price').click();assert.equal(await page.locator('#price').inputValue(),'9000');
  });
@@ -67,9 +68,9 @@ const output = 'docs/screenshots/redesign-2026-11-14';
  await calculate('10000');
  await check('responsive layouts 1440 1280 768 390 360, chart text and table',async()=>{
   for(const width of [1440,1280,768,390,360]){
-   await page.setViewportSize({width,height:1000});await page.waitForTimeout(150);
+   await page.setViewportSize({width,height:width===1440?900:width===1280?800:width===390?844:width===360?800:1000});await page.waitForTimeout(150);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'overflow '+width);
-   const geometry=await page.locator('#chart').evaluate(e=>({actual:e.getBoundingClientRect().width,svg:e.viewBox.baseVal.width,font:e.querySelector('text').getAttribute('font-size')}));assert.ok(Math.abs(geometry.actual-geometry.svg)<2);assert.equal(geometry.font,'12');
+   const geometry=await page.locator('#chart').evaluate(e=>({actual:e.getBoundingClientRect().width,svg:e.viewBox.baseVal.width,font:e.querySelector('text').getAttribute('font-size')}));assert.ok(Math.abs(geometry.actual-geometry.svg)<2);assert.equal(geometry.font,'12'); if(width<540) assert.ok(await page.locator('#sales').evaluate(e=>parseFloat(getComputedStyle(e).fontSize))>=56);
    await page.screenshot({path:output+`/after-${width}.png`,fullPage:true});
   }
   await page.getByText('Точные значения квантилей',{exact:true}).click();assert.equal(await page.locator('#quantiles tr').count(),9);assert.equal(await page.locator('#quantiles tr.median td').last().innerText(),'713');await page.screenshot({path:output+'/after-mobile-table.png',fullPage:true});
@@ -85,9 +86,26 @@ const output = 'docs/screenshots/redesign-2026-11-14';
   await page.goto(base);await page.waitForFunction(()=>!document.querySelector('#recover').hidden);assert.equal(await page.locator('#calculate').isDisabled(),true);await page.unroute('**/api/catalog');await page.locator('#recover').click();await page.waitForFunction(()=>!document.querySelector('#calculate').disabled);
   await page.route('**/api/auth/me',route=>route.abort('internetdisconnected'));await ready();await page.waitForFunction(()=>document.querySelector('#account-open').textContent.includes('проверить'));await page.unroute('**/api/auth/me');
  });
+ await check('local font, nice ticks, long destinations and large values',async()=>{
+  await ready();await page.evaluate(()=>document.fonts.ready);assert.equal(await page.evaluate(()=>document.fonts.check('500 16px "Golos Text"')),true);
+  await calculate('10000');const labels=await page.locator('#chart text').allTextContents();assert.ok(labels.includes('250'));assert.ok(!labels.includes('-72'));
+  await page.locator('#route').selectOption('MOW-MRV');await calculate('1000000000');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.locator('#result-route').focus();await page.screenshot({path:output+'/after-long-large.png',fullPage:true});
+  await page.locator('#route').selectOption('MOW-AER');await calculate('10000');
+ });
+ await check('measured palette contrast and readable local typography',async()=>{
+  const luminance = hex => {const c=hex.match(/../g).map(x=>parseInt(x,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return c[0]*.2126+c[1]*.7152+c[2]*.0722};
+  const contrast=(a,b)=>{const x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+  const ratios={text:contrast('24231f','fffcf7'),secondary:contrast('6e685f','f4f0e8'),accent:contrast('7b2d3b','fffcf7'),inputBorder:contrast('8f877b','fffcf7')};
+  for(const key of ['text','secondary','accent']) assert.ok(ratios[key]>=4.5);assert.ok(ratios.inputBorder>=3);
+  await fs.writeFile('docs/art-direction-contrast.json',JSON.stringify(ratios,null,2));
+  assert.match(await page.locator('body').evaluate(e=>getComputedStyle(e).fontFamily),/Golos Text/);
+ });
  assert.deepEqual(errors,[]);results.push({name:'no browser page errors',passed:true}); completed=true;
- } finally {await fs.writeFile('docs/frontend-test-results.json',JSON.stringify({date:'2026-11-14',base,browser:browser.version(),passed:completed && errors.length===0,results,pageErrors:errors,consoleErrors,httpErrors},null,2));await browser.close()}
+ } finally {await fs.writeFile('docs/frontend-art-test-results.json',JSON.stringify({date:'2026-11-14',base,browser:browser.version(),passed:completed && errors.length===0,results,pageErrors:errors,consoleErrors,httpErrors},null,2));await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
+
+
 
 
 
