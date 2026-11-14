@@ -1,0 +1,25 @@
+[Unit]
+Description=Aviaprognoz Spring Boot service
+After=network.target
+
+[Service]
+Type=simple
+User=aviaprognoz
+Group=aviaprognoz
+StateDirectory=aviaprognoz
+StateDirectoryMode=0700
+WorkingDirectory=/var/lib/aviaprognoz
+EnvironmentFile=/etc/aviaprognoz/app.env
+ExecStart=/usr/bin/java -Xms64m -Xmx384m -XX:+ExitOnOutOfMemoryError -jar /opt/aviaprognoz/current.jar
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+SuccessExitStatus=143
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

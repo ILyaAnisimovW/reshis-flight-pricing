@@ -113,7 +113,16 @@ p,h1,h2,h3 {
   letter-spacing:-1px;
   display:flex;
   align-items:center;
-  gap:22px
+  gap:12px
+}
+
+.brand-logo {
+  display:block;
+  width:40px;
+  height:46px;
+  object-fit:contain;
+  flex-shrink:0;
+  mix-blend-mode:screen
 }
 
 .brand span {

@@ -1,0 +1,6 @@
+# Replace with the hostname pointing to the VM. Merge into an existing
+# reverse proxy configuration instead of replacing unrelated sites.
+example.com {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:18092
+}

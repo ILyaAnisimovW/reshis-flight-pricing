@@ -4,5 +4,12 @@ build
 .venv
 *.log
 .env
+.env.*
+*.pem
+*.key
+**/*.mv.db
+**/*.trace.db
+docs/screenshots
+docs/logo-concepts
 data
 runtime
