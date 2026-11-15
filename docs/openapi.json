@@ -1,0 +1,802 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Решись — авиапрогноз API",
+    "version": "1.0.0",
+    "description": "Ручной контракт опубликованного среза c1a81820cb96f089e47f2deb8b25fae4881c2304. Cookie-сессия, не Bearer/JWT. Сначала GET /api/auth/csrf с сохранением cookie; токен отправлять в возвращённом headerName. Обновлять токен после login/logout. Встроенного Swagger UI нет; файл можно открыть в совместимом OpenAPI viewer."
+  },
+  "servers": [
+    {
+      "url": "https://aviaprognoz.onrender.com",
+      "description": "Публичный учебный сервис"
+    },
+    {
+      "url": "http://localhost:8080",
+      "description": "Локальный JAR"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Forecast"
+    },
+    {
+      "name": "Accounts"
+    },
+    {
+      "name": "Operations"
+    }
+  ],
+  "paths": {
+    "/api/catalog": {
+      "get": {
+        "operationId": "getCatalog",
+        "summary": "Направления, параметры и доступные даты",
+        "tags": [
+          "Forecast"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Catalog"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/calculate": {
+      "post": {
+        "operationId": "calculateForecast",
+        "summary": "Расчёт спроса и продаж",
+        "tags": [
+          "Forecast"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calculation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF отсутствует, устарел или доступ запрещён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Рейс не найден",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CsrfHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalculateRequest"
+              },
+              "example": {
+                "route": "MOW-AER",
+                "date": "2026-06-01",
+                "price": 9000
+              }
+            }
+          }
+        },
+        "description": "demand = median - sensitivity * (price - base_price); sales = min(seats, max(0, demand)). Спрос может быть отрицательным, продажи — нет. Все девять квантилей пересчитываются по той же цене."
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Проверка процесса",
+        "tags": [
+          "Operations"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ready": {
+      "get": {
+        "operationId": "getReady",
+        "summary": "Готовность прогноза опубликованной версии",
+        "tags": [
+          "Operations"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ready"
+                }
+              }
+            }
+          }
+        },
+        "description": "Контракт опубликованного среза: наличие 155 строк. Не обещает проверку подключения БД. Новая DB-aware readiness пока является отдельным локальным изменением."
+      }
+    },
+    "/api/auth/csrf": {
+      "get": {
+        "operationId": "getCsrf",
+        "summary": "Получить токен и имя заголовка CSRF",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Csrf"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "operationId": "registerUser",
+        "summary": "Регистрация без автоматического входа",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [],
+        "responses": {
+          "201": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF отсутствует, устарел или доступ запрещён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Логин занят",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CsrfHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Registration"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "loginUser",
+        "summary": "Вход и установка сессионной cookie",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Нет сессии или неверный пароль",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF отсутствует, устарел или доступ запрещён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CsrfHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "logoutUser",
+        "summary": "Выход и завершение сессии",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF отсутствует, устарел или доступ запрещён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CsrfHeader"
+          }
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "operationId": "getCurrentUser",
+        "summary": "Текущий пользователь",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Нет сессии или неверный пароль",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/account/report": {
+      "get": {
+        "operationId": "getAccountReport",
+        "summary": "Защищённая памятка участника",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountReport"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Нет сессии или неверный пароль",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
+        ]
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "Csrf": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "headerName": {
+            "type": "string",
+            "example": "X-CSRF-TOKEN"
+          }
+        },
+        "required": [
+          "token",
+          "headerName"
+        ]
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "UP"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "Ready": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "UP"
+            ]
+          },
+          "forecast_rows": {
+            "type": "integer",
+            "example": 155
+          }
+        },
+        "required": [
+          "status",
+          "forecast_rows"
+        ]
+      },
+      "Registration": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 8,
+            "description": "Не более 72 байтов UTF-8; ограничение байтов не равно числу символов."
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ]
+      },
+      "Login": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ]
+      },
+      "CalculateRequest": {
+        "type": "object",
+        "properties": {
+          "route": {
+            "type": "string",
+            "enum": [
+              "MOW-AER",
+              "MOW-KGD",
+              "MOW-LED",
+              "MOW-MRV",
+              "MOW-OVB"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-06-01"
+          },
+          "price": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Цена в рублях, JSON number. Вне рекомендованного диапазона возвращается предупреждение."
+          }
+        },
+        "required": [
+          "route",
+          "date",
+          "price"
+        ]
+      },
+      "Quantile": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "number",
+            "enum": [
+              0.1,
+              0.2,
+              0.3,
+              0.4,
+              0.5,
+              0.6,
+              0.7,
+              0.8,
+              0.9
+            ]
+          },
+          "demand": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "q",
+          "demand"
+        ]
+      },
+      "Calculation": {
+        "type": "object",
+        "properties": {
+          "route": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "price": {
+            "type": "number"
+          },
+          "seats": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "base_demand": {
+            "type": "number"
+          },
+          "demand": {
+            "type": "number"
+          },
+          "sales": {
+            "type": "number",
+            "minimum": 0
+          },
+          "quantiles": {
+            "type": "array",
+            "minItems": 9,
+            "maxItems": 9,
+            "items": {
+              "$ref": "#/components/schemas/Quantile"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "route",
+          "date",
+          "price",
+          "seats",
+          "base_demand",
+          "demand",
+          "sales",
+          "quantiles",
+          "warnings"
+        ]
+      },
+      "Route": {
+        "type": "object",
+        "properties": {
+          "route": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "Москва"
+            ]
+          },
+          "destination": {
+            "type": "string"
+          },
+          "base_price": {
+            "type": "number"
+          },
+          "cost_per_passenger": {
+            "type": "number"
+          },
+          "price_sensitivity": {
+            "type": "number"
+          },
+          "price_min": {
+            "type": "number"
+          },
+          "price_max": {
+            "type": "number"
+          },
+          "dates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "minItems": 31,
+            "maxItems": 31
+          }
+        },
+        "required": [
+          "route",
+          "name",
+          "origin",
+          "destination",
+          "dates",
+          "base_price",
+          "cost_per_passenger",
+          "price_sensitivity",
+          "price_min",
+          "price_max"
+        ]
+      },
+      "Catalog": {
+        "type": "object",
+        "properties": {
+          "routes": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "items": {
+              "$ref": "#/components/schemas/Route"
+            }
+          }
+        },
+        "required": [
+          "routes"
+        ]
+      },
+      "AccountReport": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "message"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "JSESSIONID",
+        "description": "HttpOnly cookie; Secure в HTTPS-профиле, SameSite=Lax. Серверная сессия истекает после 30 минут бездействия."
+      }
+    },
+    "parameters": {
+      "CsrfHeader": {
+        "name": "X-CSRF-TOKEN",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Фактическое имя брать из GET /api/auth/csrf (headerName). Сохранять и отправлять cookie той же сессии."
+      }
+    }
+  }
+}

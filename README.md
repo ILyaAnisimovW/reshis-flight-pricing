@@ -70,3 +70,7 @@ sales = min(seats, max(0, demand))
 
 ## Редакционная версия frontend
 Следующая визуальная переработка описана в [frontend-art-direction.md](docs/frontend-art-direction.md): единая тёплая поверхность, локальный Golos Text (OFL1.1), маршрут и асимметричные показатели, nice ticks. API, сервер и CSV сохранены. Новые проверки:8 Java-тестов,4 frontend unit tests,14 групп браузерных сценариев; результаты в docs/frontend-art-test-results.json. Прежний CI не заменяет проверку новой ветки codex/frontend-art-direction. На Windows OneDrive при ошибке Gradle «not a regular file» распакуйте исходники в обычную папку вне OneDrive; текущая версия проверена такой сборкой.
+
+## Документация сервиса
+
+[Путеводитель: API, C4, данные, безопасность, эксплуатация и проверки](docs/service-guide.md) · [OpenAPI 3.1](docs/openapi.json) · [C4-диаграммы](docs/c4.md) · [Требования и доказательства](docs/requirements-traceability.md).
